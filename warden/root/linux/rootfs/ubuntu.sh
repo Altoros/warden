@@ -135,8 +135,9 @@ cat >> /etc/fstab <<FSTAB
 # fix for node module install issues 
 # http://www.boris.co/2012/02/server-ubuntu-11.html 
 tmpfs /dev/shm    tmpfs   defaults,noexec,nosuid     0     0 
-FSTAB 
-EOS 
+FSTAB
+
+EOS
 
 # Remove files we don't need or want
 chroot <<-EOS
