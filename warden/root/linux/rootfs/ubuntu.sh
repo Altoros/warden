@@ -6,8 +6,8 @@ set -o errexit
 shopt -s nullglob
 shopt -s globstar
 
-packages="openssh-server,rsync"
-suite="lucid"
+packages="openssh-server,rsync,unzip,ruby,git,curl,python" 
+suite="trusty"
 mirror=$(grep "^deb" /etc/apt/sources.list | head -n1 | cut -d" " -f2)
 
 # Fallback to default Ubuntu mirror when mirror could not be determined
@@ -90,6 +90,10 @@ locale-gen en_US.UTF-8
 update-locale LANG="en_US.UTF-8"
 EOS
 
+mount -o bind /dev ${target}/dev 
+mount -o bind /proc ${target}/proc 
+mount -o bind /sys ${target}/sys
+
 # Update packages
 chroot <<-EOS
 apt-get update
@@ -122,6 +126,18 @@ chroot <<-EOS
 apt-get install -y build-essential
 EOS
 
+# Fix for python multithreading issue affecting node module installation 
+# http://www.boris.co/2012/02/server-ubuntu-11.html 
+chroot <<-EOS 
+rm -rf /dev/shm 
+mkdir /dev/shm 
+cat >> /etc/fstab <<FSTAB 
+# fix for node module install issues 
+# http://www.boris.co/2012/02/server-ubuntu-11.html 
+tmpfs /dev/shm    tmpfs   defaults,noexec,nosuid     0     0 
+FSTAB 
+EOS 
+
 # Remove files we don't need or want
 chroot <<-EOS
 rm -f /var/cache/apt/archives/*.deb
@@ -129,3 +145,4 @@ rm -f /var/cache/apt/*cache.bin
 rm -f /var/lib/apt/lists/*_Packages
 rm -f /etc/ssh/ssh_host_*
 EOS
+
